@@ -1,53 +1,69 @@
 import pygame
+from random import randint
+from collections import deque
+import time
 
 pygame.init()
 
 #Variables
-width = 500
-height = 700
+WIDTH = 500
+HEIGHT = 700
 FPS = 60 # FPS
 clock = pygame.time.Clock()
-w = 60 # pine width
-h = 100 # pine height
-print(h)
-(x,y) = (width-w,0) # pine First position 
+
+(x,y) = (WIDTH,0) # pipe First position 
 black = (0,0,0)
 white = (255,255,255)
-gap = 60 
+
 
 # display window
-screen = pygame.display.set_mode((width,height))
+screen = pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption("Flappy Ball By @Oussama rachdi")
 
 
 
-class pipes:
-    def __init__(self, width, height, x, y):
-        self.width = width
-        self.height = height
-        self.x = x
-        self.y = y
+class pipesPair:
+    """ Making Pipes Object """
 
+    gap = w = 60 # pipe height
+    def __init__(self, h, x, pipeUp_y):
+        self.width = self.w        
+        self.height = h
+        self.x = x
+        self.pipeUp_y = pipeUp_y
+        self.pipeDown_y = self.pipeUp_y + self.height + self.gap     
+        self.down_height = HEIGHT - (self.height + self.gap)
     def move(self):
         self.x -= 5
 
     def draw(self):
-        pygame.draw.rect(screen, white, (self.x, self.y, self.width, self.height))
+        pygame.draw.rect(screen, white, (self.x, self.pipeUp_y, self.width, self.height))
+        pygame.draw.rect(screen, white, (self.x, self.pipeDown_y, self.width, self.down_height))
 
+    def visible(self):
+        if self.x > 0:
+            self.visible = True
+        else:
+            self.visible = False
 
 #Object
-pipeUp = pipes(w, h, x, y)
 
-pipe_down_y = y + h + gap
-down_height = height - (h + gap)
-print(down_height)
-print(pipe_down_y)
-pipeDown = pipes(w, down_height, x, pipe_down_y)
+
+pipes = deque()
+
+
+for i in range(3):
+    h = randint(60, HEIGHT-150)
+    #print(h)
+    pipes.append(pipesPair(h, x, y))
 
 
 run = True
 
+
 while run:
+    screen.fill(black)
+    
     clock.tick(FPS)
 
     for event in pygame.event.get():
@@ -55,17 +71,20 @@ while run:
             run = False
             pygame.quit()
     
+    for pipe in pipes:
+        pipe.draw();pipe.move()
+        time.sleep(2)
 
-    screen.fill(black)
+        if not(pipe.visible()):
+            pipes.popleft()
+            new_h = randint(60, HEIGHT-150)
+            pipes.append(pipesPair(new_h,x,y))
 
-    pipeUp.draw();pipeUp.move()
-    pipeDown.draw();pipeDown.move()
+    """
+    if pipe.x + pipe.width == 0 and pipe.x + pipe.width == 0:
+        pipe.x = x
+        pipe.x = x
 
-
-    if pipeUp.x + pipeUp.width == 0 and pipeDown.x + pipeDown.width == 0:
-        pipeUp.x = x
-        pipeDown.x = x
-
-
+    """
 
     pygame.display.update()
