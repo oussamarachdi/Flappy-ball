@@ -1,7 +1,5 @@
 import pygame
 from random import randint
-from collections import deque
-import time
 
 pygame.init()
 
@@ -11,7 +9,6 @@ HEIGHT = 700
 FPS = 60 # FPS
 clock = pygame.time.Clock()
 
-(x,y) = (WIDTH,0) # pipe First position 
 black = (0,0,0)
 white = (255,255,255)
 
@@ -21,41 +18,58 @@ screen = pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption("Flappy Ball By @Oussama rachdi")
 
 
+# Pipe Object Class
+class Pipe_Manager:
+    def __init__(self):
+        self.pipe_width = 60
+        self.vel = 5
+        self.max_hit = 85
+        self.spawn_tick = self.max_hit
+        self.pipes = []
+    def make_pipe(self):
+        self.gap = 60
+        self.pipe_height = randint(60, HEIGHT - 150)
+        self.pipe_x = WIDTH
+        self.pipe_y = 0
+        self.down_height = HEIGHT - (self.pipe_height + self.gap)
+        self.pipeDown_y = self.pipe_y + self.pipe_height + self.gap
 
-class pipesPair:
-    """ Making Pipes Object """
+        surf1 = pygame.Surface((self.pipe_width, self.pipe_height))
+        surf1.fill(white)
+        surf2 = pygame.Surface((self.pipe_width,self.down_height))
+        surf2.fill(white)
 
-    gap = w = 60 # pipe height
-    def __init__(self, h, x, pipeUp_y):
-        self.width = self.w        
-        self.height = h
-        self.x = x
-        self.pipeUp_y = pipeUp_y
-        self.pipeDown_y = self.pipeUp_y + self.height + self.gap     
-        self.down_height = HEIGHT - (self.height + self.gap)
-    def move(self):
-        self.x -= 5
+        pipe1 = [surf1, [self.pipe_x, self.pipe_y], self.pipe_height]
+        pipe2 = [surf2,[self.pipe_x, self.pipeDown_y], self.down_height]
 
-    def draw(self):
-        pygame.draw.rect(screen, white, (self.x, self.pipeUp_y, self.width, self.height))
-        pygame.draw.rect(screen, white, (self.x, self.pipeDown_y, self.width, self.down_height))
+        self.pipes.append(pipe1)
+        self.pipes.append(pipe2)
 
-    def visible(self):
-        if self.x > 0:
-            self.visible = True
-        else:
-            self.visible = False
+    def manage(self):
+        for pipe in self.pipes:
+            pipe[1][0] -= self.vel
 
-#Object
+            #checking if it is visible or Not
+            if pipe[1][0] + self.pipe_width < 0:
+                self.pipes.remove(pipe)
 
 
-pipes = deque()
+    def display(self):
+        for pipe in self.pipes:
+            screen.blit(pipe[0], pipe[1][0], pipe[1][1])
+
+    def spawner(self):
+        if self.spawn_tick == self.max_hit:
+            self.make_pipe()
+            self.spawn_tick = 0
+        self.spawn_tick += 1
 
 
-for i in range(3):
-    h = randint(60, HEIGHT-150)
-    #print(h)
-    pipes.append(pipesPair(h, x, y))
+    def manage_pipes(self):
+        self.manage()
+        self.spawner()
+        self.display()
+
 
 
 run = True
@@ -70,21 +84,8 @@ while run:
         if event.type == pygame.QUIT:
             run = False
             pygame.quit()
-    
-    for pipe in pipes:
-        pipe.draw();pipe.move()
-        time.sleep(2)
+    game = True
 
-        if not(pipe.visible()):
-            pipes.popleft()
-            new_h = randint(60, HEIGHT-150)
-            pipes.append(pipesPair(new_h,x,y))
 
-    """
-    if pipe.x + pipe.width == 0 and pipe.x + pipe.width == 0:
-        pipe.x = x
-        pipe.x = x
-
-    """
 
     pygame.display.update()
